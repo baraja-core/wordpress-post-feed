@@ -33,14 +33,17 @@ final class Feed
 		$feed = [];
 		foreach ($rss->getElementsByTagName('item') as $node) {
 			/** @var \DOMElement $node */
-			$feed[] = new Post(
+
+			$description = $this->hydrateDescription($this->hydrateValueToString($node, 'description'));
+			$feed[] = (new Post(
 				strip_tags($this->hydrateValueToString($node, 'title')),
-				html_entity_decode(preg_replace('/^<p>(.+?)<\/p>.*/', '$1', str_replace("\n", ' ', $this->hydrateValueToString($node, 'description')))),
+				(string) $description['description'],
 				$this->hydrateValueToString($node, 'link'),
-				$this->hydrateValueToDateTime($node, 'pubDate'),
-				$this->hydrateValueToString($node, 'creator'),
-				$this->hydrateValue($node, 'category')
-			);
+				$this->hydrateValueToDateTime($node, 'pubDate')
+			))
+				->setCreator($this->hydrateValueToString($node, 'creator'))
+				->setCategories($this->hydrateValue($node, 'category'))
+				->setMainImageUrl($description['mainImageUrl'] ?? null);
 		}
 
 		return $feed;
@@ -76,6 +79,24 @@ final class Feed
 		}
 
 		return $cache;
+	}
+
+
+	/**
+	 * @return string[]|null[]
+	 */
+	private function hydrateDescription(string $description): array
+	{
+		$mainImageUrl = null;
+		if (preg_match('/(.*)<img\s[^>]*?src="([^"]+)"[^>]*?>(.*)/', $description, $parser)) {
+			$description = trim($parser[1] . ' ' . $parser[3]);
+			$mainImageUrl = trim($parser[2]);
+		}
+
+		return [
+			'description' => html_entity_decode(preg_replace('/^<p>(.+?)<\/p>.*/', '$1', str_replace("\n", ' ', trim($description)))),
+			'mainImageUrl' => $mainImageUrl,
+		];
 	}
 
 

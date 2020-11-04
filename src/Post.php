@@ -15,23 +15,23 @@ class Post
 
 	private \DateTimeImmutable $date;
 
-	private string $creator;
+	private ?string $creator = null;
 
 	/** @var string[] */
-	private array $categories;
+	private array $categories = [];
+
+	private ?string $mainImageUrl = null;
 
 
 	/**
 	 * @param string[] $categories
 	 */
-	public function __construct(string $title, string $description, string $link, \DateTimeImmutable $date, string $creator, array $categories)
+	public function __construct(string $title, string $description, string $link, \DateTimeImmutable $date)
 	{
 		$this->title = $title;
 		$this->description = $description;
 		$this->link = $link;
 		$this->date = $date;
-		$this->creator = $creator;
-		$this->categories = $categories;
 	}
 
 
@@ -59,9 +59,17 @@ class Post
 	}
 
 
-	public function getCreator(): string
+	public function getCreator(): ?string
 	{
 		return $this->creator;
+	}
+
+
+	public function setCreator(?string $creator): self
+	{
+		$this->creator = $creator;
+
+		return $this;
 	}
 
 
@@ -71,5 +79,30 @@ class Post
 	public function getCategories(): array
 	{
 		return $this->categories;
+	}
+
+
+	/**
+	 * @param string[] $categories
+	 */
+	public function setCategories(array $categories): self
+	{
+		$this->categories = $categories;
+
+		return $this;
+	}
+
+
+	public function getMainImageUrl(): ?string
+	{
+		return $this->mainImageUrl;
+	}
+
+
+	public function setMainImageUrl(?string $mainImageUrl): self
+	{
+		$this->mainImageUrl = $mainImageUrl;
+
+		return $this;
 	}
 }
