@@ -12,12 +12,15 @@ final class Feed
 {
 	private Cache $cache;
 
+	private ImageStorage $imageStorage;
+
 	private string $expirationTime;
 
 
-	public function __construct(IStorage $storage, string $expirationTime)
+	public function __construct(IStorage $storage, ImageStorage $imageStorage, string $expirationTime)
 	{
 		$this->cache = new Cache($storage, 'wordpress-post-feed');
+		$this->imageStorage = $imageStorage;
 		$this->expirationTime = $expirationTime;
 	}
 
@@ -41,6 +44,7 @@ final class Feed
 				$this->hydrateValueToString($node, 'link'),
 				$this->hydrateValueToDateTime($node, 'pubDate')
 			))
+				->setImageStorage($this->imageStorage)
 				->setCreator($this->hydrateValueToString($node, 'creator'))
 				->setCategories($this->hydrateValue($node, 'category'))
 				->setMainImageUrl($description['mainImageUrl'] ?? null);
@@ -91,6 +95,11 @@ final class Feed
 		if (preg_match('/(.*)<img\s[^>]*?src="([^"]+)"[^>]*?>(.*)/', $description, $parser)) {
 			$description = trim($parser[1] . ' ' . $parser[3]);
 			$mainImageUrl = trim($parser[2]);
+			try {
+				$this->imageStorage->save($mainImageUrl);
+			} catch (\InvalidArgumentException $e) {
+				trigger_error($e->getMessage());
+			}
 		}
 
 		return [

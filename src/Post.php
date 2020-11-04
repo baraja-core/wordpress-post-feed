@@ -7,6 +7,8 @@ namespace Baraja\WordPressPostFeed;
 
 class Post
 {
+	private ?ImageStorage $imageStorage = null;
+
 	private string $title;
 
 	private string $description;
@@ -23,15 +25,20 @@ class Post
 	private ?string $mainImageUrl = null;
 
 
-	/**
-	 * @param string[] $categories
-	 */
 	public function __construct(string $title, string $description, string $link, \DateTimeImmutable $date)
 	{
 		$this->title = $title;
 		$this->description = $description;
 		$this->link = $link;
 		$this->date = $date;
+	}
+
+
+	public function setImageStorage(?ImageStorage $imageStorage): self
+	{
+		$this->imageStorage = $imageStorage;
+
+		return $this;
 	}
 
 
@@ -90,6 +97,30 @@ class Post
 		$this->categories = $categories;
 
 		return $this;
+	}
+
+
+	public function getAbsoluteInternalUrl(): ?string
+	{
+		if ($this->imageStorage === null) {
+			throw new \RuntimeException('Image storage does not set. Did you create instance this entity from Feed service?');
+		}
+
+		return $this->mainImageUrl !== null
+			? $this->imageStorage->getAbsoluteInternalUrl($this->mainImageUrl)
+			: null;
+	}
+
+
+	public function getRelativeInternalUrl(): ?string
+	{
+		if ($this->imageStorage === null) {
+			throw new \RuntimeException('Image storage does not set. Did you create instance this entity from Feed service?');
+		}
+
+		return $this->mainImageUrl !== null
+			? $this->imageStorage->getRelativeInternalUrl($this->mainImageUrl)
+			: null;
 	}
 
 
