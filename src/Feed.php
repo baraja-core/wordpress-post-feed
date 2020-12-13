@@ -37,11 +37,11 @@ final class Feed
 		foreach ($rss->getElementsByTagName('item') as $node) {
 			/** @var \DOMElement $node */
 
-			$description = $this->hydrateDescription($this->hydrateValueToString($node, 'description'));
+			$description = $this->hydrateDescription((string) $this->hydrateValueToString($node, 'description'));
 			$feed[] = (new Post(
-				strip_tags($this->hydrateValueToString($node, 'title')),
+				strip_tags((string) $this->hydrateValueToString($node, 'title')),
 				(string) $description['description'],
-				$this->hydrateValueToString($node, 'link'),
+				(string) $this->hydrateValueToString($node, 'link'),
 				$this->hydrateValueToDateTime($node, 'pubDate')
 			))
 				->setImageStorage($this->imageStorage)
@@ -103,7 +103,7 @@ final class Feed
 		}
 
 		return [
-			'description' => html_entity_decode(preg_replace('/^<p>(.+?)<\/p>.*/', '$1', str_replace("\n", ' ', trim($description)))),
+			'description' => html_entity_decode((string) preg_replace('/^<p>(.+?)<\/p>.*/', '$1', str_replace("\n", ' ', trim($description)))),
 			'mainImageUrl' => $mainImageUrl,
 		];
 	}
