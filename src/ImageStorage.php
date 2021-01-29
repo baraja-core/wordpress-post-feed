@@ -51,7 +51,7 @@ final class ImageStorage
 		$originalFileName = (string) preg_replace_callback(
 			'/^.*\/([^\/]+)\.([^.]+)$/',
 			fn (array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
-			$url
+			$url,
 		);
 		$relativeName = substr(md5($url), 0, 7) . '-' . $originalFileName;
 

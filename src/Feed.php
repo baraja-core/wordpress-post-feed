@@ -30,7 +30,7 @@ final class Feed
 	 */
 	public function load(string $url): array
 	{
-		$rss = new \DOMDocument();
+		$rss = new \DOMDocument;
 		$rss->loadXML($this->getContent($url));
 
 		$feed = [];
@@ -42,7 +42,7 @@ final class Feed
 				strip_tags((string) $this->hydrateValueToString($node, 'title')),
 				(string) $description['description'],
 				(string) $this->hydrateValueToString($node, 'link'),
-				$this->hydrateValueToDateTime($node, 'pubDate')
+				$this->hydrateValueToDateTime($node, 'pubDate'),
 			))
 				->setImageStorage($this->imageStorage)
 				->setCreator($this->hydrateValueToString($node, 'creator'))
