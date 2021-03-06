@@ -5,21 +5,17 @@ declare(strict_types=1);
 namespace Baraja\WordPressPostFeed;
 
 
+use Baraja\Url\Url;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Strings;
 use Nette\Utils\Validators;
 
 final class ImageStorage
 {
-	private string $storagePath;
-
-	private string $relativeStoragePath;
-
-
-	public function __construct(string $storagePath, string $relativeStoragePath)
-	{
-		$this->storagePath = $storagePath;
-		$this->relativeStoragePath = $relativeStoragePath;
+	public function __construct(
+		private string $storagePath,
+		private string $relativeStoragePath
+	) {
 	}
 
 
@@ -42,7 +38,9 @@ final class ImageStorage
 
 	public function getAbsoluteInternalUrl(string $url): string
 	{
-		return $this->getBaseUrl() . '/' . $this->relativeStoragePath . '/' . $this->getRelativeInternalUrl($url);
+		return Url::get()->getBaseUrl()
+			. '/' . $this->relativeStoragePath
+			. '/' . $this->getRelativeInternalUrl($url);
 	}
 
 
@@ -50,7 +48,7 @@ final class ImageStorage
 	{
 		$originalFileName = (string) preg_replace_callback(
 			'/^.*\/([^\/]+)\.([^.]+)$/',
-			fn(array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
+			static fn(array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
 			$url,
 		);
 		$relativeName = substr(md5($url), 0, 7) . '-' . $originalFileName;
@@ -69,30 +67,5 @@ final class ImageStorage
 		}
 
 		return substr(md5($url), 0, 7);
-	}
-
-
-	private function getBaseUrl(): string
-	{
-		static $return;
-		if ($return !== null) {
-			return $return;
-		}
-		if (!isset($_SERVER['REQUEST_URI'], $_SERVER['HTTP_HOST'])) {
-			throw new \RuntimeException('Can not resolve current URL in CLI mode.');
-		}
-
-		$currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
-			. '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-
-		if (preg_match('/^(https?:\/\/.+)\/www\//', $currentUrl, $localUrlParser)) {
-			$return = $localUrlParser[0];
-		} elseif (preg_match('/^(https?:\/\/[^\/]+)/', $currentUrl, $publicUrlParser)) {
-			$return = $publicUrlParser[1];
-		} else {
-			throw new \RuntimeException('Can not parse relative URL from "' . $currentUrl . '".');
-		}
-
-		return $return = rtrim($return, '/');
 	}
 }

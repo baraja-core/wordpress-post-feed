@@ -12,16 +12,13 @@ final class Feed
 {
 	private Cache $cache;
 
-	private ImageStorage $imageStorage;
 
-	private string $expirationTime;
-
-
-	public function __construct(IStorage $storage, ImageStorage $imageStorage, string $expirationTime)
-	{
+	public function __construct(
+		IStorage $storage,
+		private ImageStorage $imageStorage,
+		private string $expirationTime
+	) {
 		$this->cache = new Cache($storage, 'wordpress-post-feed');
-		$this->imageStorage = $imageStorage;
-		$this->expirationTime = $expirationTime;
 	}
 
 
