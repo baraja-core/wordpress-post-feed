@@ -9,6 +9,14 @@ class Post
 {
 	private ?ImageStorage $imageStorage = null;
 
+	private string $title;
+
+	private string $description;
+
+	private string $link;
+
+	private \DateTimeImmutable $date;
+
 	private ?string $creator = null;
 
 	/** @var string[] */
@@ -17,12 +25,12 @@ class Post
 	private ?string $mainImageUrl = null;
 
 
-	public function __construct(
-		private string $title,
-		private string $description,
-		private string $link,
-		private \DateTimeImmutable $date
-	) {
+	public function __construct(string $title, string $description, string $link, \DateTimeImmutable $date)
+	{
+		$this->title = $title;
+		$this->description = $description;
+		$this->link = $link;
+		$this->date = $date;
 	}
 
 

@@ -25,7 +25,7 @@ final class WordpressPostFeedExtension extends CompilerExtension
 	public function beforeCompile(): void
 	{
 		$builder = $this->getContainerBuilder();
-		/** @var mixed[] $config */
+		/** @var array<string, mixed> $config */
 		$config = $this->getConfig();
 
 		$builder->addDefinition($this->prefix('feed'))
@@ -41,8 +41,8 @@ final class WordpressPostFeedExtension extends CompilerExtension
 
 
 	/**
-	 * @param mixed[] $config
-	 * @param mixed[] $parameters
+	 * @param array<string, mixed> $config
+	 * @param array<string, mixed> $parameters
 	 * @return string[]
 	 */
 	private function resolveImageStoragePath(array $config, array $parameters): array
