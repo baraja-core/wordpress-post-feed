@@ -16,7 +16,7 @@ final class Feed
 	public function __construct(
 		IStorage $storage,
 		private ImageStorage $imageStorage,
-		private string $expirationTime
+		private string $expirationTime,
 	) {
 		$this->cache = new Cache($storage, 'wordpress-post-feed');
 	}
@@ -65,7 +65,8 @@ final class Feed
 
 	private function getContent(string $url, bool $flush = false): string
 	{
-		if ($flush === true || ($cache = $this->cache->load($url)) === null) {
+		$cache = $this->cache->load($url);
+		if ($cache === null || $flush === true) {
 			$curl = curl_init();
 			curl_setopt_array($curl, [
 				CURLOPT_URL => $url,
@@ -89,9 +90,9 @@ final class Feed
 	private function hydrateDescription(string $description): array
 	{
 		$mainImageUrl = null;
-		if (preg_match('/(.*)<img\s[^>]*?src="([^"]+)"[^>]*?>(.*)/', $description, $parser)) {
-			$description = trim($parser[1] . ' ' . $parser[3]);
-			$mainImageUrl = trim($parser[2]);
+		if (preg_match('/<img\s[^>]*?src="([^"]+)"[^>]*?>/', $description, $imageParser)) {
+			$description = str_replace($imageParser[0], '', $description);
+			$mainImageUrl = trim($imageParser[1]);
 			try {
 				$this->imageStorage->save($mainImageUrl);
 			} catch (\InvalidArgumentException $e) {
