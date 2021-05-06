@@ -24,7 +24,8 @@ final class ImageStorage
 		if (Validators::isUrl($url) === false) {
 			throw new \InvalidArgumentException('Given input is not valid absolute URL, because "' . $url . '" given.');
 		}
-		if (\is_file($storagePath = $this->getInternalPath($url)) === false) {
+		$storagePath = $this->getInternalPath($url);
+		if (\is_file($storagePath) === false) {
 			FileSystem::copy($url, $storagePath);
 		}
 	}
@@ -38,9 +39,13 @@ final class ImageStorage
 
 	public function getAbsoluteInternalUrl(string $url): string
 	{
-		return Url::get()->getBaseUrl()
-			. '/' . $this->relativeStoragePath
-			. '/' . $this->getRelativeInternalUrl($url);
+		try {
+			$baseUrl = Url::get()->getBaseUrl();
+		} catch (\Throwable) {
+			$baseUrl = '';
+		}
+
+		return $baseUrl . '/' . $this->relativeStoragePath . '/' . $this->getRelativeInternalUrl($url);
 	}
 
 
@@ -48,7 +53,7 @@ final class ImageStorage
 	{
 		$originalFileName = (string) preg_replace_callback(
 			'/^.*\/([^\/]+)\.([^.]+)$/',
-			static fn(array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
+			fn (array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
 			$url,
 		);
 		$relativeName = substr(md5($url), 0, 7) . '-' . $originalFileName;
