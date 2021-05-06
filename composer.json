@@ -12,7 +12,8 @@
 		"php": "^8.0",
 		"baraja-core/url": "^1.0",
 		"nette/di": "^3.0",
-		"nette/caching": "^3.0"
+		"nette/caching": "^3.0",
+		"ext-curl": "*"
 	},
 	"require-dev": {
 		"phpstan/phpstan": "^0.12.74",
