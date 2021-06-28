@@ -35,7 +35,7 @@ final class Feed
 	/**
 	 * @return Post[]
 	 */
-	public function load(string $url): array
+	public function load(string $url, ?int $limit = null, int $offset = 0): array
 	{
 		$rss = new \DOMDocument;
 		$rss->loadXML($this->getContent($url));
@@ -57,7 +57,7 @@ final class Feed
 				->setMainImageUrl($description['mainImageUrl'] ?? null);
 		}
 
-		return $feed;
+		return array_slice($feed, $offset, $limit);
 	}
 
 
