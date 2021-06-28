@@ -7,6 +7,8 @@ namespace Baraja\WordPressPostFeed;
 
 use Nette\Caching\Cache;
 use Nette\Caching\IStorage;
+use Nette\Caching\Storages\FileStorage;
+use Nette\Utils\FileSystem;
 
 final class Feed
 {
@@ -16,10 +18,15 @@ final class Feed
 
 
 	public function __construct(
-		IStorage $storage,
+		?IStorage $storage = null,
 		?ImageStorage $imageStorage = null,
 		private string $expirationTime = '2 hours',
 	) {
+		if ($storage === null) {
+			$tempDir = sys_get_temp_dir() . '/wordpress-feed/' . substr(md5(__FILE__), 0, 8);
+			FileSystem::createDir($tempDir);
+			$storage = new FileStorage($tempDir);
+		}
 		$this->imageStorage = $imageStorage ?? new ImageStorage;
 		$this->cache = new Cache($storage, 'wordpress-post-feed');
 	}
