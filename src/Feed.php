@@ -16,7 +16,7 @@ final class Feed
 	public function __construct(
 		IStorage $storage,
 		private ?ImageStorage $imageStorage = null,
-		private string $expirationTime,
+		private string $expirationTime = '2 hours',
 	) {
 		$this->cache = new Cache($storage, 'wordpress-post-feed');
 	}
