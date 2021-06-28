@@ -12,10 +12,20 @@ use Nette\Utils\Validators;
 
 final class ImageStorage
 {
-	public function __construct(
-		private string $storagePath,
-		private string $relativeStoragePath
-	) {
+	private string $storagePath;
+
+	private string $relativeStoragePath;
+
+
+	public function __construct(?string $storagePath = null, string $relativeStoragePath = 'wordpress-post-feed')
+	{
+		if ($storagePath === null && isset($_SERVER['SCRIPT_FILENAME'])) {
+			$storagePath = dirname((string) $_SERVER['SCRIPT_FILENAME']);
+		} else {
+			throw new \RuntimeException('Script filename is not available. Please define storagePath manually.');
+		}
+		$this->storagePath = $storagePath;
+		$this->relativeStoragePath = $relativeStoragePath;
 	}
 
 
