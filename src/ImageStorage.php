@@ -19,6 +19,10 @@ final class ImageStorage
 
 	public function __construct(?string $storagePath = null, string $relativeStoragePath = 'wordpress-post-feed')
 	{
+		if ($relativeStoragePath === '') {
+			trigger_error('Relative storage path can not be empty.');
+			$relativeStoragePath = 'wordpress-post-feed';
+		}
 		if ($storagePath === null && isset($_SERVER['SCRIPT_FILENAME'])) {
 			$storagePath = dirname((string) $_SERVER['SCRIPT_FILENAME']) . DIRECTORY_SEPARATOR . $relativeStoragePath;
 		} else {
