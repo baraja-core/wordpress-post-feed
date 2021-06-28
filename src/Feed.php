@@ -116,7 +116,8 @@ final class Feed
 	{
 		$return = [];
 		for ($i = 0; true; $i++) {
-			if (($item = $node->getElementsByTagName($key)->item($i)) !== null) {
+			$item = $node->getElementsByTagName($key)->item($i);
+			if ($item !== null) {
 				$return[] = $item->nodeValue;
 			} else {
 				break;
