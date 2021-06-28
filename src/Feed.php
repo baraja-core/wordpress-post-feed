@@ -15,7 +15,7 @@ final class Feed
 
 	public function __construct(
 		IStorage $storage,
-		private ImageStorage $imageStorage,
+		private ?ImageStorage $imageStorage = null,
 		private string $expirationTime,
 	) {
 		$this->cache = new Cache($storage, 'wordpress-post-feed');
@@ -93,10 +93,12 @@ final class Feed
 		if (preg_match('/<img\s[^>]*?src="([^"]+)"[^>]*?>/', $description, $imageParser)) {
 			$description = str_replace($imageParser[0], '', $description);
 			$mainImageUrl = trim($imageParser[1]);
-			try {
-				$this->imageStorage->save($mainImageUrl);
-			} catch (\InvalidArgumentException $e) {
-				trigger_error($e->getMessage());
+			if ($this->imageStorage !== null) {
+				try {
+					$this->imageStorage->save($mainImageUrl);
+				} catch (\InvalidArgumentException $e) {
+					trigger_error($e->getMessage());
+				}
 			}
 		}
 
