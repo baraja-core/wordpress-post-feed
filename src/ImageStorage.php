@@ -25,7 +25,7 @@ final class ImageStorage
 		}
 		if ($storagePath === null && isset($_SERVER['SCRIPT_FILENAME'])) {
 			$storagePath = dirname((string) $_SERVER['SCRIPT_FILENAME']) . DIRECTORY_SEPARATOR . $relativeStoragePath;
-		} else {
+		} elseif ($storagePath === null) {
 			throw new \RuntimeException('Script filename is not available. Please define storagePath manually.');
 		}
 		$this->storagePath = $storagePath;
