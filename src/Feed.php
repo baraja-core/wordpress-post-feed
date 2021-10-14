@@ -6,7 +6,7 @@ namespace Baraja\WordPressPostFeed;
 
 
 use Nette\Caching\Cache;
-use Nette\Caching\IStorage;
+use Nette\Caching\Storage;
 use Nette\Caching\Storages\FileStorage;
 use Nette\Utils\FileSystem;
 
@@ -18,7 +18,7 @@ final class Feed
 
 
 	public function __construct(
-		?IStorage $storage = null,
+		?Storage $storage = null,
 		?ImageStorage $imageStorage = null,
 		private string $expirationTime = '2 hours',
 	) {
@@ -33,7 +33,7 @@ final class Feed
 
 
 	/**
-	 * @return Post[]
+	 * @return array<int, Post>
 	 */
 	public function load(string $url, ?int $limit = null, int $offset = 0): array
 	{
@@ -46,15 +46,15 @@ final class Feed
 
 			$description = $this->hydrateDescription((string) $this->hydrateValueToString($node, 'description'));
 			$feed[] = (new Post(
-				strip_tags((string) $this->hydrateValueToString($node, 'title')),
-				(string) $description['description'],
-				(string) $this->hydrateValueToString($node, 'link'),
-				$this->hydrateValueToDateTime($node, 'pubDate'),
-				$this->imageStorage,
+				title: strip_tags((string) $this->hydrateValueToString($node, 'title')),
+				description: $description['description'],
+				link: (string) $this->hydrateValueToString($node, 'link'),
+				date: $this->hydrateValueToDateTime($node, 'pubDate'),
+				imageStorage: $this->imageStorage,
 			))
 				->setCreator($this->hydrateValueToString($node, 'creator'))
 				->setCategories($this->hydrateValue($node, 'category'))
-				->setMainImageUrl($description['mainImageUrl'] ?? null);
+				->setMainImageUrl($description['mainImageUrl']);
 		}
 
 		return array_slice($feed, $offset, $limit);
@@ -99,7 +99,7 @@ final class Feed
 
 
 	/**
-	 * @return string[]|null[]
+	 * @return array{description: string, mainImageUrl: string|null}
 	 */
 	private function hydrateDescription(string $description): array
 	{
@@ -122,7 +122,7 @@ final class Feed
 
 
 	/**
-	 * @return string[]
+	 * @return array<int, string>
 	 */
 	private function hydrateValue(\DOMElement $node, string $key): array
 	{
