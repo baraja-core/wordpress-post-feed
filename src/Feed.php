@@ -33,12 +33,24 @@ final class Feed
 
 
 	/**
+	 * Load feed data by given URL and write to cache.
+	 * When the method is called, the complete feed is downloaded and cached.
+	 * Post images are automatically stored in the ImageStorage service,
+	 * from where they will be retrieved in the future.
+	 * Checking for new feed content is done once every interval set in the constructor.
+	 *
 	 * @return array<int, Post>
 	 */
 	public function load(string $url, ?int $limit = null, int $offset = 0): array
 	{
+		$rawFeed = $this->loadRawFeed($url);
+		if (is_string($rawFeed) === false) {
+			$rawFeed = $this->downloadRawFeed($url);
+			$this->writeCache($url, $rawFeed);
+		}
+
 		$rss = new \DOMDocument;
-		$rss->loadXML($this->getContent($url));
+		$rss->loadXML($rawFeed);
 
 		$feed = [];
 		foreach ($rss->getElementsByTagName('item') as $node) {
@@ -63,7 +75,10 @@ final class Feed
 
 	public function updateCache(string $url): void
 	{
-		$this->getContent($url, true);
+		$this->writeCache(
+			$url,
+			$this->downloadRawFeed($url),
+		);
 	}
 
 
@@ -73,28 +88,41 @@ final class Feed
 	}
 
 
-	private function getContent(string $url, bool $flush = false): string
+	private function loadRawFeed(string $url): ?string
 	{
-		$cache = $this->cache->load($url);
-		if (is_string($cache) === false || $flush === true) {
-			$curl = curl_init();
-			curl_setopt_array($curl, [
-				CURLOPT_URL => $url,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_ENCODING => 'UTF-8',
-			]);
-			$cache = curl_exec($curl);
-			curl_close($curl);
-			if ($cache === false) {
-				trigger_error('Feed URL "' . $url . '" is broken.');
-			} else {
-				$this->cache->save($url, $cache, [
-					Cache::EXPIRATION => $this->expirationTime,
-				]);
-			}
+		try {
+			$cache = (string) $this->cache->load($url);
+		} catch (\Throwable) {
+			$cache = null;
 		}
 
-		return (string) $cache;
+		return $cache === '' ? null : $cache;
+	}
+
+
+	private function downloadRawFeed(string $url): string
+	{
+		$curl = curl_init();
+		curl_setopt_array($curl, [
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => 'UTF-8',
+		]);
+		$haystack = curl_exec($curl);
+		curl_close($curl);
+		if ($haystack === false) {
+			trigger_error('Feed URL "' . $url . '" is broken.');
+		}
+
+		return (string) $haystack;
+	}
+
+
+	private function writeCache(string $url, string $content, ?string $expiration = null): void
+	{
+		$this->cache->save($url, $content, [
+			Cache::EXPIRATION => $expiration ?? $this->expirationTime,
+		]);
 	}
 
 
