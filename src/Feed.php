@@ -76,7 +76,7 @@ final class Feed
 	private function getContent(string $url, bool $flush = false): string
 	{
 		$cache = $this->cache->load($url);
-		if ($cache === null || $flush === true) {
+		if (is_string($cache) === false || $flush === true) {
 			$curl = curl_init();
 			curl_setopt_array($curl, [
 				CURLOPT_URL => $url,
@@ -85,12 +85,16 @@ final class Feed
 			]);
 			$cache = curl_exec($curl);
 			curl_close($curl);
-			$this->cache->save($url, $cache, [
-				Cache::EXPIRATION => $this->expirationTime,
-			]);
+			if ($cache === false) {
+				trigger_error('Feed URL "' . $url . '" is broken.');
+			} else {
+				$this->cache->save($url, $cache, [
+					Cache::EXPIRATION => $this->expirationTime,
+				]);
+			}
 		}
 
-		return $cache;
+		return (string) $cache;
 	}
 
 
