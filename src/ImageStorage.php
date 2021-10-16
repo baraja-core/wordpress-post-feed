@@ -26,8 +26,8 @@ final class ImageStorage
 			$relativeStoragePath = 'wordpress-post-feed';
 		}
 		if ($storagePath === null && isset($_SERVER['SCRIPT_FILENAME'])) {
-			$storagePath = dirname((string) $_SERVER['SCRIPT_FILENAME']) . DIRECTORY_SEPARATOR . $relativeStoragePath;
-		} else {
+			$storagePath = dirname($_SERVER['SCRIPT_FILENAME']) . DIRECTORY_SEPARATOR . $relativeStoragePath;
+		} elseif ($storagePath === null) {
 			throw new \RuntimeException('Script filename is not available. Please define storagePath manually.');
 		}
 		$this->storagePath = $storagePath;
