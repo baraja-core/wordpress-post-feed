@@ -113,13 +113,20 @@ final class Feed
 		if ($haystack === false) {
 			trigger_error('Feed URL "' . $url . '" is broken.');
 		}
+		$haystack = trim((string) $haystack);
+		if ($haystack === '') {
+			throw new \RuntimeException('Feed response for URL "' . $url . '" is empty.');
+		}
 
-		return (string) $haystack;
+		return $haystack;
 	}
 
 
 	private function writeCache(string $url, string $content, ?string $expiration = null): void
 	{
+		if ($content === '') { // ignore empty content
+			return;
+		}
 		$this->cache->save($url, $content, [
 			Cache::EXPIRATION => $expiration ?? $this->expirationTime,
 		]);
