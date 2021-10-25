@@ -7,16 +7,21 @@ jobs:
     name: Psalm
     runs-on: ubuntu-latest
     steps:
+      - name: Install PHP
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: 8.0
+
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Psalm
-        uses: docker://vimeo/psalm-github-actions
-        with:
-          security_analysis: true
-          report_file: results.sarif
+      - name: Install dependencies
+        run: |
+          COMPOSER_HOME="$(composer config home)"
+          composer require --no-update psalm/phar
+          composer update --no-progress --ansi
+          ./vendor/bin/psalm.phar --version
 
-      - name: Upload Security Analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          sarif_file: results.sarif
+      - name: Psalm
+        run: |
+          ./vendor/bin/psalm.phar --no-progress || ./vendor/bin/psalm.phar --output-format=github --no-progress
