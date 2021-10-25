@@ -186,7 +186,7 @@ final class Feed
 		try {
 			return new \DateTimeImmutable($this->hydrateValueToString($node, $key) ?? 'now');
 		} catch (\Throwable $e) {
-			throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+			throw new \RuntimeException($e->getMessage(), (int) $e->getCode(), $e);
 		}
 	}
 }
