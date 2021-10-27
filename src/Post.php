@@ -7,7 +7,7 @@ namespace Baraja\WordPressPostFeed;
 
 class Post
 {
-	private ImageStorage $imageStorage;
+	private ?ImageStorage $imageStorage = null;
 
 	private string $title;
 
@@ -30,13 +30,11 @@ class Post
 		string $description,
 		string $link,
 		\DateTimeImmutable $date,
-		ImageStorage $imageStorage
 	) {
 		$this->title = $title;
 		$this->description = $description;
 		$this->link = $link;
 		$this->date = $date;
-		$this->imageStorage = $imageStorage;
 	}
 
 
@@ -106,6 +104,8 @@ class Post
 
 	public function getAbsoluteInternalUrl(): ?string
 	{
+		assert($this->imageStorage !== null);
+
 		return $this->mainImageUrl !== null
 			? $this->imageStorage->getAbsoluteInternalUrl($this->mainImageUrl)
 			: null;
@@ -114,6 +114,8 @@ class Post
 
 	public function getRelativeInternalUrl(): ?string
 	{
+		assert($this->imageStorage !== null);
+
 		return $this->mainImageUrl !== null
 			? $this->imageStorage->getRelativeInternalUrl($this->mainImageUrl)
 			: null;
