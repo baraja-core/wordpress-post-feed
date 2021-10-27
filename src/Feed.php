@@ -50,6 +50,7 @@ final class Feed
 		}
 
 		$cacheKey = $url . '-' . $limit . '-' . $offset . '-' . md5($rawFeed);
+		/** @var array<int, Post>|null $response */
 		$response = $this->cache->load($cacheKey);
 		if ($response === null) {
 			$rss = new \DOMDocument;
@@ -64,7 +65,6 @@ final class Feed
 					description: $description['description'],
 					link: (string) $this->hydrateValueToString($node, 'link'),
 					date: $this->hydrateValueToDateTime($node, 'pubDate'),
-					imageStorage: $this->imageStorage,
 				))
 					->setCreator($this->hydrateValueToString($node, 'creator'))
 					->setCategories($this->hydrateValue($node, 'category'))
@@ -74,6 +74,9 @@ final class Feed
 			$this->cache->save($cacheKey, $response, [
 				Cache::EXPIRATION => $this->expirationTime,
 			]);
+		}
+		foreach ($response as $responseItem) {
+			$responseItem->setImageStorage($this->imageStorage);
 		}
 
 		return $response;
@@ -154,7 +157,7 @@ final class Feed
 			try {
 				$this->imageStorage->save($mainImageUrl);
 			} catch (\Throwable $e) {
-				trigger_error(sprintf('Image "%s" is broken: %s', $mainImageUrl, (string) $e->getMessage()));
+				trigger_error(sprintf('Image "%s" is broken: %s', $mainImageUrl, $e->getMessage()));
 			}
 		}
 
