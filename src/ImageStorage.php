@@ -12,7 +12,21 @@ use Nette\Utils\Validators;
 
 final class ImageStorage
 {
-	public const IMAGE_MIME_TYPES = ['image/gif', 'image/png', 'image/jpeg', 'image/webp'];
+	/** image types */
+	public const
+		JPEG = IMAGETYPE_JPEG,
+		PNG = IMAGETYPE_PNG,
+		GIF = IMAGETYPE_GIF,
+		WEBP = IMAGETYPE_WEBP,
+		BMP = IMAGETYPE_BMP;
+
+	public const FORMATS = [
+		self::JPEG => 'jpeg',
+		self::PNG => 'png',
+		self::GIF => 'gif',
+		self::WEBP => 'webp',
+		self::BMP => 'bmp',
+	];
 
 	private string $storagePath;
 
@@ -47,11 +61,11 @@ final class ImageStorage
 		$storagePath = $this->getInternalPath($url);
 		if (is_file($storagePath) === false) { // image does not exist in local storage
 			$content = $this->downloadImage($url);
-			$contentType = strtolower(finfo_file(finfo_open(FILEINFO_MIME_TYPE), $content));
-			if (in_array($contentType, self::IMAGE_MIME_TYPES, true) === false) {
+			$type = @getimagesizefromstring($content)[2]; // @ - strings smaller than 12 bytes causes read error
+			if (is_int($type) === false || isset(self::FORMATS[$type]) === false) {
 				throw new \RuntimeException(
 					'Security issue: Downloaded file "' . $url . '" is not valid image, '
-					. 'because content type "' . $contentType . '" has been detected.',
+					. 'because image content type has not been detected.',
 				);
 			}
 			FileSystem::write($storagePath, $content);
