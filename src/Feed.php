@@ -49,27 +49,34 @@ final class Feed
 			$this->writeCache($url, $rawFeed);
 		}
 
-		$rss = new \DOMDocument;
-		$rss->loadXML($rawFeed);
+		$cacheKey = $url . '-' . $limit . '-' . $offset . '-' . md5($rawFeed);
+		$response = $this->cache->load($cacheKey);
+		if ($response === null) {
+			$rss = new \DOMDocument;
+			$rss->loadXML($rawFeed);
 
-		$feed = [];
-		foreach ($rss->getElementsByTagName('item') as $node) {
-			/** @var \DOMElement $node */
-
-			$description = $this->hydrateDescription((string) $this->hydrateValueToString($node, 'description'));
-			$feed[] = (new Post(
-				title: strip_tags((string) $this->hydrateValueToString($node, 'title')),
-				description: $description['description'],
-				link: (string) $this->hydrateValueToString($node, 'link'),
-				date: $this->hydrateValueToDateTime($node, 'pubDate'),
-				imageStorage: $this->imageStorage,
-			))
-				->setCreator($this->hydrateValueToString($node, 'creator'))
-				->setCategories($this->hydrateValue($node, 'category'))
-				->setMainImageUrl($description['mainImageUrl']);
+			$feed = [];
+			foreach ($rss->getElementsByTagName('item') as $node) {
+				/** @var \DOMElement $node */
+				$description = $this->hydrateDescription((string) $this->hydrateValueToString($node, 'description'));
+				$feed[] = (new Post(
+					title: strip_tags((string) $this->hydrateValueToString($node, 'title')),
+					description: $description['description'],
+					link: (string) $this->hydrateValueToString($node, 'link'),
+					date: $this->hydrateValueToDateTime($node, 'pubDate'),
+					imageStorage: $this->imageStorage,
+				))
+					->setCreator($this->hydrateValueToString($node, 'creator'))
+					->setCategories($this->hydrateValue($node, 'category'))
+					->setMainImageUrl($description['mainImageUrl']);
+			}
+			$response = array_slice($feed, $offset, $limit);
+			$this->cache->save($cacheKey, $response, [
+				Cache::EXPIRATION => $this->expirationTime,
+			]);
 		}
 
-		return array_slice($feed, $offset, $limit);
+		return $response;
 	}
 
 
@@ -106,6 +113,8 @@ final class Feed
 		curl_setopt_array($curl, [
 			CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_SSL_VERIFYPEER => false,
 			CURLOPT_ENCODING => 'UTF-8',
 		]);
 		$haystack = curl_exec($curl);
@@ -144,8 +153,8 @@ final class Feed
 			$mainImageUrl = trim($imageParser[1]);
 			try {
 				$this->imageStorage->save($mainImageUrl);
-			} catch (\InvalidArgumentException $e) {
-				trigger_error($e->getMessage());
+			} catch (\Throwable $e) {
+				trigger_error(sprintf('Image "%s" is broken: %s', $mainImageUrl, (string) $e->getMessage()));
 			}
 		}
 
