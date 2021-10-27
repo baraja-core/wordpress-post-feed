@@ -46,7 +46,7 @@ final class ImageStorage
 		}
 		$storagePath = $this->getInternalPath($url);
 		if (is_file($storagePath) === false) { // image does not exist in local storage
-			$content = FileSystem::read($url); // download image
+			$content = $this->downloadImage($url);
 			$contentType = strtolower(finfo_file(finfo_open(FILEINFO_MIME_TYPE), $content));
 			if (in_array($contentType, self::IMAGE_MIME_TYPES, true) === false) {
 				throw new \RuntimeException(
@@ -121,5 +121,25 @@ final class ImageStorage
 		}
 
 		return substr(md5($url), 0, 7);
+	}
+
+
+	private function downloadImage(string $url): string
+	{
+		$curl = curl_init();
+		curl_setopt_array($curl, [
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_ENCODING => 'UTF-8',
+		]);
+		$haystack = curl_exec($curl);
+		curl_close($curl);
+		if ($haystack === false) {
+			trigger_error('Image URL "' . $url . '" is empty or broken.');
+		}
+
+		return (string) $haystack;
 	}
 }
