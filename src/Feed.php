@@ -177,7 +177,7 @@ final class Feed
 		for ($i = 0; true; $i++) {
 			$item = $node->getElementsByTagName($key)->item($i);
 			if ($item !== null) {
-				$return[] = $item->nodeValue;
+				$return[] = (string) $item->nodeValue;
 			} else {
 				break;
 			}
