@@ -23,7 +23,7 @@ final class Feed
 		private string $expirationTime = '2 hours',
 	) {
 		if ($storage === null) {
-			$tempDir = sys_get_temp_dir() . '/wordpress-feed/' . substr(md5(__FILE__), 0, 8);
+			$tempDir = sprintf('%s/wordpress-feed/%s', sys_get_temp_dir(), substr(md5(__FILE__), 0, 8));
 			FileSystem::createDir($tempDir);
 			$storage = new FileStorage($tempDir);
 		}
@@ -49,7 +49,7 @@ final class Feed
 			$this->writeCache($url, $rawFeed);
 		}
 
-		$cacheKey = $url . '-' . $limit . '-' . $offset . '-' . md5($rawFeed);
+		$cacheKey = sprintf('%s-%s-%s-%s', $url, $limit, $offset, md5($rawFeed));
 		/** @var array<int, Post>|null $response */
 		$response = $this->cache->load($cacheKey);
 		if ($response === null) {
@@ -123,11 +123,11 @@ final class Feed
 		$haystack = curl_exec($curl);
 		curl_close($curl);
 		if ($haystack === false) {
-			trigger_error('Feed URL "' . $url . '" is broken.');
+			trigger_error(sprintf('Feed URL "%s" is broken.', $url));
 		}
 		$haystack = trim((string) $haystack);
 		if ($haystack === '') {
-			throw new \RuntimeException('Feed response for URL "' . $url . '" is empty.');
+			throw new \RuntimeException(sprintf('Feed response for URL "%s" is empty.', $url));
 		}
 
 		return $haystack;
@@ -151,7 +151,7 @@ final class Feed
 	private function hydrateDescription(string $description): array
 	{
 		$mainImageUrl = null;
-		if (preg_match('/<img\s[^>]*?src="([^"]+)"[^>]*?>/', $description, $imageParser)) {
+		if (preg_match('/<img\s[^>]*?src="([^"]+)"[^>]*?>/', $description, $imageParser) === 1) {
 			$description = str_replace($imageParser[0], '', $description);
 			$mainImageUrl = trim($imageParser[1]);
 			try {

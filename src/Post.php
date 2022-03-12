@@ -19,7 +19,7 @@ class Post
 
 	private ?string $creator = null;
 
-	/** @var string[] */
+	/** @var array<int, string> */
 	private array $categories = [];
 
 	private ?string $mainImageUrl = null;
@@ -83,7 +83,7 @@ class Post
 
 
 	/**
-	 * @return string[]
+	 * @return array<int, string>
 	 */
 	public function getCategories(): array
 	{
@@ -92,7 +92,7 @@ class Post
 
 
 	/**
-	 * @param string[] $categories
+	 * @param array<int, string> $categories
 	 */
 	public function setCategories(array $categories): self
 	{

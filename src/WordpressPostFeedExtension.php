@@ -35,15 +35,15 @@ final class WordpressPostFeedExtension extends CompilerExtension
 		$imageStoragePaths = $this->resolveImageStoragePath($config, $builder->parameters);
 		$builder->addDefinition($this->prefix('imageStorage'))
 			->setFactory(ImageStorage::class)
-			->setArgument('storagePath', $imageStoragePaths['storagePath'] ?? '')
-			->setArgument('relativeStoragePath', $imageStoragePaths['relativeStoragePath'] ?? '');
+			->setArgument('storagePath', $imageStoragePaths['storagePath'])
+			->setArgument('relativeStoragePath', $imageStoragePaths['relativeStoragePath']);
 	}
 
 
 	/**
 	 * @param array<string, mixed> $config
 	 * @param array<string, mixed> $parameters
-	 * @return string[]
+	 * @return array{storagePath: string, relativeStoragePath: string}
 	 */
 	private function resolveImageStoragePath(array $config, array $parameters): array
 	{

@@ -56,7 +56,7 @@ final class ImageStorage
 	public function save(string $url): void
 	{
 		if (Validators::isUrl($url) === false) {
-			throw new \InvalidArgumentException('Given input is not valid absolute URL, because "' . $url . '" given.');
+			throw new \InvalidArgumentException(sprintf('Given input is not valid absolute URL, because "%s" given.', $url));
 		}
 		$storagePath = $this->getInternalPath($url);
 		if (is_file($storagePath) === false) { // image does not exist in local storage
@@ -65,7 +65,7 @@ final class ImageStorage
 			$type = $imageSize !== false ? $imageSize[2] : null;
 			if (is_int($type) === false || isset(self::FORMATS[$type]) === false) {
 				throw new \RuntimeException(
-					'Security issue: Downloaded file "' . $url . '" is not valid image, '
+					sprintf('Security issue: Downloaded file "%s" is not valid image, ', $url)
 					. 'because image content type has not been detected.',
 				);
 			}
@@ -81,7 +81,7 @@ final class ImageStorage
 	 */
 	public function getInternalPath(string $url): string
 	{
-		return $this->storagePath . '/' . $this->getRelativeInternalUrl($url);
+		return sprintf('%s/%s', $this->storagePath, $this->getRelativeInternalUrl($url));
 	}
 
 
@@ -95,14 +95,14 @@ final class ImageStorage
 		} catch (\Throwable) {
 			if (PHP_SAPI === 'cli') {
 				throw new \LogicException(
-					__METHOD__ . ': Absolute URL is not available in CLI. '
-					. 'Did you set context URL to "' . Url::class . '" service?',
+					sprintf('%s: Absolute URL is not available in CLI. ', __METHOD__)
+					. sprintf('Did you set context URL to "%s" service?', Url::class),
 				);
 			}
 			$baseUrl = '';
 		}
 
-		return $baseUrl . '/' . $this->relativeStoragePath . '/' . $this->getRelativeInternalUrl($url);
+		return sprintf('%s/%s/%s', $baseUrl, $this->relativeStoragePath, $this->getRelativeInternalUrl($url));
 	}
 
 
@@ -113,12 +113,12 @@ final class ImageStorage
 	{
 		$originalFileName = (string) preg_replace_callback(
 			'/^.*\/([^\/]+)\.([^.]+)$/',
-			fn(array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
+			static fn(array $match): string => substr(Strings::webalize($match[1]), 0, 64) . '.' . strtolower($match[2]),
 			$url,
 		);
 		$relativeName = substr(md5($url), 0, 7) . '-' . $originalFileName;
 
-		return $this->resolvePrefixDir($url) . '/' . $relativeName;
+		return sprintf('%s/%s', $this->resolvePrefixDir($url), $relativeName);
 	}
 
 
@@ -131,7 +131,7 @@ final class ImageStorage
 		if ($url === '') {
 			throw new \LogicException('URL can not be empty string.');
 		}
-		if (preg_match('/wp-content.+(\d{4})\/(\d{2})/', $url, $urlParser)) {
+		if (preg_match('/wp-content.+(\d{4})\/(\d{2})/', $url, $urlParser) === 1) {
 			return $urlParser[1] . '-' . $urlParser[2];
 		}
 
@@ -152,7 +152,7 @@ final class ImageStorage
 		$haystack = curl_exec($curl);
 		curl_close($curl);
 		if ($haystack === false) {
-			trigger_error('Image URL "' . $url . '" is empty or broken.');
+			trigger_error(sprintf('Image URL "%s" is empty or broken.', $url));
 		}
 
 		return (string) $haystack;
