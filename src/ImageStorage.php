@@ -61,7 +61,8 @@ final class ImageStorage
 		$storagePath = $this->getInternalPath($url);
 		if (is_file($storagePath) === false) { // image does not exist in local storage
 			$content = $this->downloadImage($url);
-			$type = @getimagesizefromstring($content)[2]; // @ - strings smaller than 12 bytes causes read error
+			$imageSize = @getimagesizefromstring($content); // @ - strings smaller than 12 bytes causes read error
+			$type = $imageSize[2] ?? null;
 			if (is_int($type) === false || isset(self::FORMATS[$type]) === false) {
 				throw new \RuntimeException(
 					'Security issue: Downloaded file "' . $url . '" is not valid image, '
